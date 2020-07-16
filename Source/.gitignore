@@ -2,6 +2,9 @@ Bin/
 obj/
 
 *.suo
+*.user
+
+.vs/
 
 # Ignore Mac OSX and Windows temp files
 .DS_Store

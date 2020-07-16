@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net;
-using System.Windows;
-using System.Xml.Linq;
 
 using Newtonsoft.Json.Linq;
 using System.Threading;
@@ -17,13 +14,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Windows.ApplicationModel;
-using System.Reflection;
 using System.Threading.Tasks;
-using Windows.UI.Xaml;
 
-namespace OneSignalSDK_WP_WNS {
+namespace OneSignalSDK_WP_WNS
+{
 
-   public class OneSignal {
+    public class OneSignal {
       public const string VERSION = "010101";
 
       private const string BASE_URL = "https://onesignal.com/api/v1/";

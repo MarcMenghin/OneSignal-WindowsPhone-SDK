@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using OneSignalSDK_WP_WNS;
 using Newtonsoft.Json.Linq;
@@ -12,7 +9,7 @@ using Windows.ApplicationModel.Core;
 namespace OneSignalSDK_WP_WNS_WRTC
 {
 
-   internal class ExternalInitCordovaInternal : ExternalInit {
+    internal class ExternalInitCordovaInternal : ExternalInit {
       public string sdkType { get { return "cordova"; } }
 
       public static void Init(string appId, string launchArgs, OneSignal.NotificationReceived inNotificationDelegate = null) {
