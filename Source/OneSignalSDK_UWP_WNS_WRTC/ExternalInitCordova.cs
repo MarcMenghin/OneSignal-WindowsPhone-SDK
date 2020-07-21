@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-
-using OneSignalSDK_WP_WNS;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Windows.ApplicationModel.Core;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OneSignalSDK_UWP_WNS;
 
-namespace OneSignalSDK_WP_WNS_WRTC
+namespace OneSignalSDK_UWP_WNS_WRTC
 {
 
     internal class ExternalInitCordovaInternal : ExternalInit {

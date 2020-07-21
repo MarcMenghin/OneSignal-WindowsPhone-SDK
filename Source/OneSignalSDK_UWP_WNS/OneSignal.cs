@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-
-using Newtonsoft.Json.Linq;
-using System.Threading;
-using Windows.UI.Core;
-using Windows.Networking.PushNotifications;
-using Windows.ApplicationModel.Activation;
-
-using Windows.Storage;
-using Windows.Security.ExchangeActiveSyncProvisioning;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using Windows.ApplicationModel;
+using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
+using Windows.ApplicationModel.Activation;
+using Windows.Networking.PushNotifications;
+using Windows.Security.ExchangeActiveSyncProvisioning;
+using Windows.Storage;
+using Windows.UI.Core;
+using Newtonsoft.Json.Linq;
 
-namespace OneSignalSDK_WP_WNS
+namespace OneSignalSDK_UWP_WNS
 {
 
     public class OneSignal {

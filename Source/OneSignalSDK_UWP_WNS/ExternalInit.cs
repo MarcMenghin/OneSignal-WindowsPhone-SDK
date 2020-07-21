@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OneSignalSDK_WP_WNS {
+﻿namespace OneSignalSDK_UWP_WNS {
    public interface ExternalInit {
       string sdkType { get; }
       string GetAppArguments();
