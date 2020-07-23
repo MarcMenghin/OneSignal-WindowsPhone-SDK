@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.Background;
 using Windows.Foundation.Diagnostics;
 using Windows.Networking.PushNotifications;
 using Windows.Security.ExchangeActiveSyncProvisioning;
@@ -66,7 +67,6 @@ namespace OneSignalSDK_UWP_WNS
             await Log("Check NotificationOpened");
             checkForNotificationOpened(launchArgs);
 
-
             if (initDone)
                 return;
 
@@ -79,6 +79,9 @@ namespace OneSignalSDK_UWP_WNS
             await Log("Starting Getting PushUri");
             // async
             GetPushUri();
+
+            //make sure push notifications can be received when the app is closed
+            await BackgroundExecutionManager.RequestAccessAsync();
 
             initDone = true;
             await Log("Init Done!!");
