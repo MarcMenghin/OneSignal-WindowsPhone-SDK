@@ -111,7 +111,7 @@ namespace OneSignalSDK_UWP_WNS
                     return;
                 }
 
-                SendPing(totalTimeActive);
+                await SendPing(totalTimeActive);
                 settings.Values["OneSignalActiveTime"] = (long)0;
             }
 
@@ -176,34 +176,6 @@ namespace OneSignalSDK_UWP_WNS
             }
         }
 
-        static void OneSignal_VisibilityChanged(CoreWindow sender, VisibilityChangedEventArgs args)
-        {
-            foreground = args.Visible;
-
-            if (foreground)
-                lastPingTime = DateTime.Now.Ticks;
-            else
-            {
-                var time_elapsed = (long)((((DateTime.Now.Ticks) - lastPingTime) / 10000000) + 0.5);
-                lastPingTime = DateTime.Now.Ticks;
-
-                if (time_elapsed < 0 || time_elapsed > 604800)
-                    return;
-
-                var unSentActiveTime = GetSavedActiveTime();
-                var totalTimeActive = unSentActiveTime + time_elapsed;
-
-                if (totalTimeActive < 30)
-                {
-                    settings.Values["OneSignalActiveTime"] = totalTimeActive;
-                    return;
-                }
-
-                SendPing(totalTimeActive);
-                settings.Values["OneSignalActiveTime"] = (long)0;
-            }
-        }
-
         private static long GetSavedActiveTime()
         {
             if (settings.Values.ContainsKey("OneSignalActiveTime"))
@@ -211,10 +183,12 @@ namespace OneSignalSDK_UWP_WNS
             return 0;
         }
 
-        private static void SendPing(long activeTime)
+        private static async Task SendPing(long activeTime)
         {
             if (mPlayerId == null)
                 return;
+
+            await Log("Sending Ping");
 
             var jsonObject = JObject.FromObject(new
             {
@@ -226,7 +200,7 @@ namespace OneSignalSDK_UWP_WNS
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(BASE_URL + "players/" + mPlayerId + "/on_focus"));
             request.Content = new HttpStringContent(jsonObject.ToString(), Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
 
-            client.SendRequestAsync(request);
+            await client.SendRequestAsync(request);
         }
 
         private static LoggingSession session = null;
