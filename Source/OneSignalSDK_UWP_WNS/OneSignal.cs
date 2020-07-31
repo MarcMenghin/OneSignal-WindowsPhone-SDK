@@ -7,14 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.Background;
 using Windows.Foundation.Diagnostics;
 using Windows.Networking.PushNotifications;
 using Windows.Security.ExchangeActiveSyncProvisioning;
 using Windows.Storage;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.Web.Http;
 using Windows.Web.Http.Headers;
+using Newtonsoft.Json;
 using UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding;
 
 namespace OneSignalSDK_UWP_WNS
@@ -32,7 +33,7 @@ namespace OneSignalSDK_UWP_WNS
         private static bool initDone = false;
         private static bool foreground = true;
 
-        public delegate void NotificationReceived(string message, IDictionary<string, string> additionalData, bool isActive);
+        public delegate void NotificationReceived(string message, string additionalData, bool isActive);
         public static NotificationReceived notificationDelegate = null;
 
         public delegate void IdsAvailable(string playerID, string pushToken);
@@ -162,12 +163,14 @@ namespace OneSignalSDK_UWP_WNS
 
                     if (json["custom"] != null)
                     {
+                        await Log("Custom data: " + json["custom"].ToString());
+
                         var bindingNode = args.ToastNotification.Content.SelectSingleNode("/toast/visual/binding");
                         string text1 = bindingNode.SelectSingleNode("text[@id='2']").InnerText;
 
                         args.ToastNotification.SuppressPopup = true;
                         args.Cancel = true;
-                        NotificationOpened(text1, lauchJson, false);
+                        await NotificationOpened(text1, lauchJson, false);
                     }
                 }
                 catch (Exception e)
@@ -207,17 +210,21 @@ namespace OneSignalSDK_UWP_WNS
         private static LoggingChannel defaultLoggingChannel = null;
         private static StorageFolder logFolder = null;
 
+        private static readonly SemaphoreSlim LogLock = new SemaphoreSlim(1, 1);
+
         public static async Task Log(string message)
         {
+            await LogLock.WaitAsync();
+
             if (session == null)
             {
                 logFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("log", CreationCollisionOption.OpenIfExists);
                 await logFolder.CreateFileAsync("SearchForMeToFindTheLog", CreationCollisionOption.ReplaceExisting);
 
-                session = new LoggingSession("onesignal_tapget");
+                session = new LoggingSession("onesignal-tapget-" + DateTime.Now.Ticks);
                 defaultLoggingChannel = new LoggingChannel("OneSignal", null);
                 session.AddLoggingChannel(defaultLoggingChannel);
-                defaultLoggingChannel.LogMessage("Starting new log!");
+                defaultLoggingChannel.LogMessage("Starting new log!", LoggingLevel.Information);
             }
 
             const string prefix = "OneSignal: ";
@@ -227,12 +234,13 @@ namespace OneSignalSDK_UWP_WNS
 
             try
             {
-                await session.SaveToFileAsync(logFolder, "onesignal-tapget-log.log.etl");
+                await session.SaveToFileAsync(logFolder, session.Name + "-log.etl");
             }
             catch
             {
-
             }
+
+            LogLock.Release();
         }
 
         private static readonly object SendSessionLock = new object();
@@ -314,43 +322,62 @@ namespace OneSignalSDK_UWP_WNS
             sessionCallInProgress = false;
         }
 
-        private static async void NotificationOpened(string message, string jsonParams, bool openedFromNotification)
+        private static async Task NotificationOpened(string message, string jsonParams, bool openedFromNotification)
         {
             await Log("NotificationOpened");
-            JObject jObject = JObject.Parse(jsonParams);
+            JObject jObject = null;
 
-            JObject jsonObject = JObject.FromObject(new
+            try
             {
-                app_id = mAppId,
-                player_id = mPlayerId,
-                opened = true
-            });
+                await Log("Params: " + jsonParams);
 
-            await Log("Params investigated");
+                jObject = JObject.Parse(jsonParams);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, new Uri(BASE_URL + "notifications/" + (string)jObject["custom"]["i"]));
-            request.Content = new HttpStringContent(jsonObject.ToString(), UnicodeEncoding.Utf8, "application/json");
-            GetHttpClient().SendRequestAsync(request);
+                JObject jsonObject = JObject.FromObject(new
+                {
+                    app_id = mAppId,
+                    player_id = mPlayerId,
+                    opened = true
+                });
 
-            if (openedFromNotification && jObject["custom"]["u"] != null)
+                await Log("Params investigated");
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, new Uri(BASE_URL + "notifications/" + (string)jObject["custom"]["i"]));
+                request.Content = new HttpStringContent(jsonObject.ToString(), UnicodeEncoding.Utf8, "application/json");
+                GetHttpClient().SendRequestAsync(request); //ping onesignal to mark notification as recieved
+
+                if (openedFromNotification && jObject["custom"]["u"] != null)
+                {
+                    await Log("Launching URI: " + (string)jObject["custom"]["u"]);
+
+                    var uri = new Uri((string)jObject["custom"]["u"], UriKind.Absolute);
+                    await Windows.System.Launcher.LaunchUriAsync(uri);
+                }
+            }
+            catch (Exception ex)
             {
-                await Log("Launching URI: " + (string)jObject["custom"]["u"]);
-
-                var uri = new Uri((string)jObject["custom"]["u"], UriKind.Absolute);
-                Windows.System.Launcher.LaunchUriAsync(uri);
+                await Log("ERROR: " + ex.ToString());
             }
 
-            if (notificationDelegate != null)
+            try
             {
-                await Log("Calling registered Delegate!");
+                if (notificationDelegate != null && jObject != null)
+                {
+                    await Log("Calling registered Delegate!");
 
-                var additionalDataJToken = jObject["custom"]["a"];
-                IDictionary<string, string> additionalData = null;
+                    var additionalDataJToken = jObject["custom"]["a"];
+                    string additionalData = null;
+                    if (additionalDataJToken != null)
+                    {
+                        additionalData = additionalDataJToken.ToString();
+                    }
 
-                if (additionalDataJToken != null)
-                    additionalData = additionalDataJToken.ToObject<Dictionary<string, string>>();
-
-                notificationDelegate(message, additionalData, initDone);
+                    notificationDelegate(message, additionalData, initDone);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Log("ERROR DELEGATE: " + ex.ToString());
             }
 
             await Log("Finished NotificationOpened");

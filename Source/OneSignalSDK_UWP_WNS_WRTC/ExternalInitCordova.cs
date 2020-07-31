@@ -38,7 +38,7 @@ namespace OneSignalSDK_UWP_WNS_WRTC
                   EventHandler<NotificationOpenedEventArgs> temp = notificationOpened;
                   temp(this, new NotificationOpenedEventArgs() {
                      message = inMessage,
-                     additionalData = JsonConvert.SerializeObject(inAdditionalData),
+                     additionalData = inAdditionalData,
                      isActive = inIsActive
                   });
                }
