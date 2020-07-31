@@ -326,18 +326,24 @@ namespace OneSignalSDK_UWP_WNS
                 opened = true
             });
 
+            await Log("Params investigated");
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, new Uri(BASE_URL + "notifications/" + (string)jObject["custom"]["i"]));
             request.Content = new HttpStringContent(jsonObject.ToString(), UnicodeEncoding.Utf8, "application/json");
             GetHttpClient().SendRequestAsync(request);
 
             if (openedFromNotification && jObject["custom"]["u"] != null)
             {
+                await Log("Launching URI: " + (string)jObject["custom"]["u"]);
+
                 var uri = new Uri((string)jObject["custom"]["u"], UriKind.Absolute);
                 Windows.System.Launcher.LaunchUriAsync(uri);
             }
 
             if (notificationDelegate != null)
             {
+                await Log("Calling registered Delegate!");
+
                 var additionalDataJToken = jObject["custom"]["a"];
                 IDictionary<string, string> additionalData = null;
 
@@ -346,6 +352,8 @@ namespace OneSignalSDK_UWP_WNS
 
                 notificationDelegate(message, additionalData, initDone);
             }
+
+            await Log("Finished NotificationOpened");
         }
 
         private static HttpClient GetHttpClient()

@@ -27,11 +27,14 @@ namespace OneSignalSDK_UWP_WNS_WRTC
       public event EventHandler<GetIdsEventArgs> idsavailableevent;
 
       public void init(string appId, string launchArgs) {
-         ExternalInitCordovaInternal.Init(appId, launchArgs, (inMessage, inAdditionalData, inIsActive) => {
+         ExternalInitCordovaInternal.Init(appId, launchArgs, (inMessage, inAdditionalData, inIsActive) =>
+         {
 
+             OneSignal.Log("Delegate Executing Started");
             // dispatcher
             CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () => {
-               if (notificationOpened != null) {
+                OneSignal.Log("Notification Opened Triggered in UI Thread!");
+                if (notificationOpened != null) {
                   EventHandler<NotificationOpenedEventArgs> temp = notificationOpened;
                   temp(this, new NotificationOpenedEventArgs() {
                      message = inMessage,
