@@ -80,8 +80,8 @@ namespace OneSignalSDK_UWP_WNS
             // async
             GetPushUri();
 
-            //make sure push notifications can be received when the app is closed
-            await BackgroundExecutionManager.RequestAccessAsync();
+            //register background task
+            //await OneSignalBackgroundTask.RegisterIfNotAlready();
 
             initDone = true;
             await Log("Init Done!!");
@@ -207,7 +207,7 @@ namespace OneSignalSDK_UWP_WNS
         private static LoggingChannel defaultLoggingChannel = null;
         private static StorageFolder logFolder = null;
 
-        private static async Task Log(string message)
+        public static async Task Log(string message)
         {
             if (session == null)
             {
