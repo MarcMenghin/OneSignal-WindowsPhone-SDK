@@ -212,7 +212,7 @@ namespace OneSignalSDK_UWP_WNS
             if (session == null)
             {
                 logFolder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("log", CreationCollisionOption.OpenIfExists);
-                await logFolder.CreateFileAsync("SearchForMeToFindMeFile", CreationCollisionOption.ReplaceExisting);
+                await logFolder.CreateFileAsync("SearchForMeToFindTheLog", CreationCollisionOption.ReplaceExisting);
 
                 session = new LoggingSession("onesignal_tapget");
                 defaultLoggingChannel = new LoggingChannel("OneSignal", null);
